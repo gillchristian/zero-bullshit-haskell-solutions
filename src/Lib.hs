@@ -6,10 +6,12 @@ helloHandler :: Server.Request -> Server.Response
 helloHandler _
   = Server.stringResponse "hello"
 
--- Change `someFunc` to `run` because we're not savages.
--- You'll have to update this in app/Main.hs as well.
+echoHandler :: Server.Request -> Server.Response
+echoHandler = Server.stringResponse . Server.requestBody
+
 run :: IO ()
 run
   = Server.startServer
       [ Server.simpleHandler Server.GET "/hello" helloHandler
+      , Server.simpleHandler Server.POST "/echo" echoHandler
       ]
