@@ -1,0 +1,54 @@
+name:                zero-bullshit-haskell-exercices
+version:             0.1.0.0
+github:              "githubuser/zero-bullshit-haskell-exercices"
+license:             BSD3
+author:              "Author name here"
+maintainer:          "example@example.com"
+copyright:           "2019 Author name here"
+
+extra-source-files:
+- README.md
+- ChangeLog.md
+
+# Metadata used when publishing your package
+# synopsis:            Short description of your package
+# category:            Web
+
+# To avoid duplicated efforts in documentation and dealing with the
+# complications of embedding Haddock markup inside cabal files, it is
+# common to point users to the README.md file.
+description:         Please see the README on GitHub at <https://github.com/githubuser/zero-bullshit-haskell-exercices#readme>
+
+dependencies:
+- base >= 4.7 && < 5
+- zero-bullshit
+
+default-extensions:
+- OverloadedStrings
+- DeriveGeneric
+- DeriveAnyClass
+
+library:
+  source-dirs: src
+
+executables:
+  zero-bullshit-haskell-exercices-exe:
+    main:                Main.hs
+    source-dirs:         app
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - zero-bullshit-haskell-exercices
+
+tests:
+  zero-bullshit-haskell-exercices-test:
+    main:                Spec.hs
+    source-dirs:         test
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - zero-bullshit-haskell-exercices
