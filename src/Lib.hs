@@ -1,6 +1,8 @@
 module Lib where
 
+import qualified Data.Aeson as Aeson
 import qualified Data.List as List
+import GHC.Generics (Generic)
 import qualified Zero.Server as Server
 
 -- Exercise 01
@@ -49,6 +51,25 @@ currentCountHandler n _ = (n, Server.stringResponse $ show n)
 increaseHandler :: Int -> Server.Request -> (Int, Server.Response)
 increaseHandler n _ = (n + 1, Server.stringResponse "")
 
+-- Exercise 07
+
+data Item
+  = Item
+      { model :: String,
+        quantity :: Int
+      }
+  deriving (Show, Eq, Generic, Aeson.FromJSON, Aeson.ToJSON)
+
+getCartHandler :: [Item] -> Server.Request -> ([Item], Server.Response)
+getCartHandler is _ = (is, Server.jsonResponse is)
+
+postCartHandler :: [Item] -> Server.Request -> ([Item], Server.Response)
+postCartHandler is req = (is', Server.jsonResponse is')
+  where
+    is' = case Server.decodeJson $ Server.requestBody req of
+      Right i -> is ++ [i]
+      Left err -> undefined -- :troll:
+
 -- Server
 
 run :: IO ()
@@ -65,5 +86,10 @@ run =
         0
         [ Server.statefulHandler Server.GET "/current-count" currentCountHandler,
           Server.statefulHandler Server.POST "/increase" increaseHandler
+        ],
+      Server.handlersWithState
+        []
+        [ Server.statefulHandler Server.GET "/cart" getCartHandler,
+          Server.statefulHandler Server.POST "/cart" postCartHandler
         ]
     ]
