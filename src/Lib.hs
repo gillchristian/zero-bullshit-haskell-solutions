@@ -2,6 +2,7 @@ module Lib where
 
 import qualified Data.Aeson as Aeson
 import qualified Data.List as List
+import qualified Data.Map.Strict as Map
 import GHC.Generics (Generic)
 import qualified Zero.Server as Server
 
@@ -60,15 +61,30 @@ data Item
       }
   deriving (Show, Eq, Generic, Aeson.FromJSON, Aeson.ToJSON)
 
-getCartHandler :: [Item] -> Server.Request -> ([Item], Server.Response)
-getCartHandler is _ = (is, Server.jsonResponse is)
+type Items = Map.Map String Item
 
-postCartHandler :: [Item] -> Server.Request -> ([Item], Server.Response)
-postCartHandler is req = (is', Server.jsonResponse is')
-  where
-    is' = case Server.decodeJson $ Server.requestBody req of
-      Right i -> is ++ [i]
-      Left err -> undefined -- :troll:
+getCartHandler :: Items -> Server.Request -> (Items, Server.Response)
+getCartHandler is _ =
+  ( is,
+    Server.jsonResponse . reverse . List.sortOn quantity $ Map.elems is
+  )
+
+postCartHandler :: Items -> Server.Request -> (Items, Server.Response)
+postCartHandler items req =
+  case Server.decodeJson $ Server.requestBody req of
+    Right queryItem -> case Map.lookup (model queryItem) items of
+      Nothing ->
+        ( Map.insert (model queryItem) queryItem items,
+          Server.stringResponse "ok"
+        )
+      Just prev ->
+        ( Map.insert
+            (model prev)
+            (prev {quantity = (quantity queryItem) + (quantity prev)})
+            items,
+          Server.stringResponse "ok"
+        )
+    Left err -> (items, Server.failureResponse $ show err)
 
 -- Server
 
@@ -88,7 +104,7 @@ run =
           Server.statefulHandler Server.POST "/increase" increaseHandler
         ],
       Server.handlersWithState
-        []
+        Map.empty
         [ Server.statefulHandler Server.GET "/cart" getCartHandler,
           Server.statefulHandler Server.POST "/cart" postCartHandler
         ]
