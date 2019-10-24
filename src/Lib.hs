@@ -25,11 +25,20 @@ stringManipulationHandler req =
       ("I'm" : "positive" : s) -> ("I" : "think" : s)
       s -> s
 
+data State = On | Off deriving (Eq, Show)
+
+onOffSwitchHandler :: State -> Server.Request -> (State, Server.Response)
+onOffSwitchHandler On _ = (Off, Server.stringResponse $ show On)
+onOffSwitchHandler Off _ = (On, Server.stringResponse $ show Off)
+
 run :: IO ()
 run =
   Server.startServer
     [ Server.simpleHandler Server.GET "/hello" helloHandler,
       Server.simpleHandler Server.POST "/echo" echoHandler,
       Server.simpleHandler Server.POST "/case" caseHandler,
-      Server.simpleHandler Server.POST "/string-manipulation" stringManipulationHandler
+      Server.simpleHandler Server.POST "/string-manipulation" stringManipulationHandler,
+      Server.handlersWithState
+        On
+        [Server.statefulHandler Server.POST "/onoff-switch" onOffSwitchHandler]
     ]
