@@ -1,5 +1,6 @@
 module Lib where
 
+import qualified Data.List as List
 import qualified Zero.Server as Server
 
 helloHandler :: Server.Request -> Server.Response
@@ -17,10 +18,18 @@ caseHandler req =
     "3" -> "three"
     _ -> "What am I, a mathematician?"
 
+stringManipulationHandler :: Server.Request -> Server.Response
+stringManipulationHandler req =
+  Server.stringResponse $ List.intercalate " " $
+    case words $ Server.requestBody req of
+      ("I'm" : "positive" : s) -> ("I" : "think" : s)
+      s -> s
+
 run :: IO ()
 run =
   Server.startServer
     [ Server.simpleHandler Server.GET "/hello" helloHandler,
       Server.simpleHandler Server.POST "/echo" echoHandler,
-      Server.simpleHandler Server.POST "/case" caseHandler
+      Server.simpleHandler Server.POST "/case" caseHandler,
+      Server.simpleHandler Server.POST "/string-manipulation" stringManipulationHandler
     ]
